@@ -1,0 +1,22 @@
+---
+
+- name: Provision metadata-dev VM
+  hosts: all
+  sudo: True
+  gather_facts: False
+
+  vars:
+      # Password is "stepup"
+      sudo_user_password_hash: $6$kGoKMW1DrdBkyc$22a913Gspdwwd25ooGJEQRGG/ql4rVJN72nZZrmrhSJUh0M.eMjuc8BtkRiW70cPIne4Pec3FLbmiKidRcail0
+      sudo_user_name: stepup
+
+  tasks:
+      - name: Create dir for storing apt cache in /vagrant
+        file: state=directory path=/vagrant/apt/cache/partial
+
+      - name: Set apt cache location
+        copy: content='dir::cache::archives "/vagrant/apt/cache";' dest=/etc/apt/apt.conf.d/cache
+
+      # May take a while...
+      - name: Apt dist-upgrade
+        apt: update_cache=yes upgrade=dist cache_valid_time=3600
