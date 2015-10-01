@@ -1,0 +1,38 @@
+- name: Configuration for all nodes
+  hosts: all
+  sudo: True
+  tags: common
+
+  roles:
+  - common
+
+
+- name: pyFF
+  hosts: all
+  sudo: True
+  tags: pyff
+  gather_facts: no
+
+  roles:
+  - pyff
+
+
+- name: XMLSecTool
+  hosts: all
+  sudo: True
+  tags: xmlsectool
+  gather_facts: no
+
+  roles:
+  - xmlsectool
+
+
+- name: Misc tools
+  hosts: all
+  sudo: True
+  tags: tools
+  gather_facts: no
+
+  tasks:
+  - name: Install xmllint, scons
+    apt: name=libxml2-utils,scons

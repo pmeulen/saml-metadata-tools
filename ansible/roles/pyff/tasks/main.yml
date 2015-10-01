@@ -1,0 +1,22 @@
+---
+
+- name: Install packages
+  apt: name={{item}}
+  with_items:
+  - build-essential
+  - python-dev
+  - libxml2-dev
+  - libxslt1-dev
+  - libyaml-dev
+  - python-lxml
+  - python-yaml
+  - python-eventlet
+  - python-setuptools
+  - python-pip
+  - python-virtualenv
+
+- name: Create /opt/pyff for python
+  file: state=directory path=/opt/pyff
+
+- name: Install pyff in virtualenv in /opt/pyff
+  pip: virtualenv=/opt/pyff virtualenv_site_packages=yes name=pyFF

@@ -1,0 +1,16 @@
+---
+
+- name: Install JDK 7 (headless)
+  apt: name=openjdk-7-jre-headless,unzip
+
+- name: Download xmlsectool (1.2.0)
+  get_url:
+    url: http://shibboleth.net/downloads/tools/xmlsectool/1.2.0/xmlsectool-1.2.0-bin.zip
+    dest: "{{ managed_file_dir }}"
+    sha256sum: efd11ec1ed0d358ab85518d407616bde47cf1bacef129b424fb71c2bf25ffd3e  # Published sha1: 86209dea3cbf460b43964455b1d08012116f870c
+
+- name: Extract xmlsectool to /opt
+  unarchive: src={{ managed_file_dir }}/xmlsectool-1.2.0-bin.zip copy=no dest=/opt/ mode=755
+
+- name: Symlink to /opt/xmlsectool
+  file: state=link src=/opt/xmlsectool-1.2.0 dest=/opt/xmlsectool
