@@ -1,14 +1,11 @@
 ---
 
-- name: Provision metadata-dev VM
+- name: Provision Vagrant VM
   hosts: all
   sudo: True
   gather_facts: False
 
   vars:
-      # Password is "stepup"
-      sudo_user_password_hash: $6$kGoKMW1DrdBkyc$22a913Gspdwwd25ooGJEQRGG/ql4rVJN72nZZrmrhSJUh0M.eMjuc8BtkRiW70cPIne4Pec3FLbmiKidRcail0
-      sudo_user_name: stepup
 
   tasks:
       - name: Create dir for storing apt cache in /vagrant
@@ -20,3 +17,8 @@
       # May take a while...
       - name: Apt dist-upgrade
         apt: update_cache=yes upgrade=dist cache_valid_time=3600
+
+      - name: Install optional packages
+        apt: name={{ item }}
+        with_items:
+        - vim
