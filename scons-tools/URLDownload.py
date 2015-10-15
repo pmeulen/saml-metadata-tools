@@ -71,6 +71,8 @@ class URLNode(SCons.Node.Python.Value) :
             contents = contents + response["Last-Modified"]
         if "Content-Length" in response :
             contents = contents + response["Content-Length"]
+        if "ETag" in response :
+            contents = contents + response["ETag"]
         if not contents :
             contents = self.get_contents()
         self.get_ninfo().csig = contents
