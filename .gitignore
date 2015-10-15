@@ -1,0 +1,6 @@
+/.vagrant
+/apt
+/build
+*.pyc
+/.sconsign.dblite
+/.idea
