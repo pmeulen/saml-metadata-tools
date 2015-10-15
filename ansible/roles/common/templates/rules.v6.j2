@@ -35,10 +35,8 @@
 # Multiple ports:
 # -A INPUT -p tcp -m multiport --dports <port>,<port>,... -m state --state NEW -j ACCEPT
 
-# Useful IPv6 ranges:
-# Wifi SURFnet office production network: 2001:610:508:109::/64
-
 # End of INPUT chain
 -P INPUT DROP
 
 COMMIT
+# Note: there must be a newline after the COMMIT
