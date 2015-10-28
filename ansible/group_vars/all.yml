@@ -5,3 +5,6 @@ managed_file_dir: /opt/ansible/managed_files
 # Timezone
 # Format: IANA tz zone name (e.g. "Europe/Amsterdam")
 timezone: Europe/Paris
+
+# Administrative email address
+server_admin_email: admin@example.com
