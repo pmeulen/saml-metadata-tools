@@ -36,3 +36,12 @@
   tasks:
   - name: Install xmllint, scons
     apt: name=libxml2-utils,scons
+
+- name: Federation publish
+  hosts: publish
+  sudo: true
+  tags: publish
+  gather_facts: no
+
+  roles:
+  - publish
