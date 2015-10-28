@@ -48,9 +48,9 @@ Vagrant.configure("2") do |config|
         # These are not used by provision.yml
 
         ansible.groups = {
-          "md" => ["md-dev"],
-          "pub" => ["pub-dev"],
-          "reg" => ["reg-dev"]
+          "metadata" => ["md-dev"],
+          "publish" => ["pub-dev"],
+          "registry" => ["reg-dev"]
         }
         ansible.playbook = "ansible/provision.yml"
         #ansible.verbose = "vvvv"

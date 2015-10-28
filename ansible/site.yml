@@ -8,7 +8,7 @@
 
 
 - name: pyFF
-  hosts: md
+  hosts: metadata
   sudo: True
   tags: pyff
   gather_facts: no
@@ -18,7 +18,7 @@
 
 
 - name: XMLSecTool
-  hosts: md
+  hosts: metadata
   sudo: True
   tags: xmlsectool
   gather_facts: no
@@ -28,7 +28,7 @@
 
 
 - name: Misc tools
-  hosts: md
+  hosts: metadata
   sudo: True
   tags: tools
   gather_facts: no
