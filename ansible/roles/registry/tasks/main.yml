@@ -1,0 +1,9 @@
+---
+
+- name: Install Shib SP, perl
+  apt: name={{ item }}
+  with_items:
+  - perl
+  - libapache2-mod-shib2  # Installs shibd and mod_shib2, enbales mod_shib2
+
+# TODO: Rest of the registriy

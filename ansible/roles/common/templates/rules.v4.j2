@@ -28,6 +28,12 @@
 -A INPUT -p tcp --dport 80 -m state --state NEW -j ACCEPT
 {% endif %}
 
+{% if 'registry' in group_names %}
+# registry server
+-A INPUT -p tcp --dport 443 -m state --state NEW -j ACCEPT
+-A INPUT -p tcp --dport 80 -m state --state NEW -j ACCEPT
+{% endif %}
+
 
 ### End of configuration
 

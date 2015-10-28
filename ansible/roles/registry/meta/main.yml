@@ -1,0 +1,21 @@
+---
+
+# Load the apache role and pass
+dependencies:
+  - role: apache
+    vhosts:
+      # Note: config path needs a relative path because it will be loaded from the apache role
+    - config: "{{ lookup('template', role_path+'/../registry/registry.conf.j2') }}"
+      name: "{{ registry_vhost_name }}"
+      ip: "*" #"{{ registry_vhost_ipv4 }}"
+      port: 443
+      ssl_certificate: "{{ registry_ssl_certificate }}"
+      ssl_key: "{{ registry_ssl_key }}"
+      ssl: yes
+
+    - config: "{{ lookup('file', role_path+'/../registry/registry.conf.j2') }}"
+      name: "{{ registry_vhost_name }}"
+      ip: "*" # "{{ registry_vhost_ipv4 }}"
+      port: 80
+      ssl: no
+

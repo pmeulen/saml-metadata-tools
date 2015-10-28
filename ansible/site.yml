@@ -37,6 +37,17 @@
   - name: Install xmllint, scons
     apt: name=libxml2-utils,scons
 
+
+- name: Federation registry
+  hosts: registry
+  sudo: true
+  tags: registry
+  gather_facts: no
+
+  roles:
+  - registry
+
+
 - name: Federation publish
   hosts: publish
   sudo: true
@@ -45,3 +56,9 @@
 
   roles:
   - publish
+
+# - name: Metadata publication
+#  hosts: publish
+#  sudo: true
+#  tags: publish
+#  gather_facts: no
