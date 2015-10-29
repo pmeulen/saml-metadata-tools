@@ -14,7 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 CWD=`pwd`
 BASEDIR=`dirname $0`
 CA_VALIDITY_DAYS=3650
@@ -91,5 +90,8 @@ if [ $? -ne "0" ]; then
 fi
 
 echo "Wrote CA certificate to: ${CA_DIR}/ca-cert.pem"
+
+echo "Generated CA certificate:"
+${OPENSSL} x509 -in ${CA_DIR}/ca-cert.pem -text
 
 cd ${CWD}

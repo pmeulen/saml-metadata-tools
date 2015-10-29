@@ -117,6 +117,12 @@ if [ -d "${KEY_DIR}" ]; then
     echo "${crypted_private_key}" > ${CERT_BASENAME}.key
 else
     cp ${tmpdir}/private_key.pem ${CERT_BASENAME}.key
+    if [ $? -ne "0" ]; then
+        error_exit "Error copying private key"
+    fi
 fi
 
-cp ${tmpdir}/certificate.pem ${CERT_BASENAME}.crt
+${OPENSSL} x509 -in ${tmpdir}/certificate.pem -out ${CERT_BASENAME}.crt
+if [ $? -ne "0" -o ! -e ${CERT_BASENAME}.crt ]; then
+    error_exit "Error copying certificate"
+fi
