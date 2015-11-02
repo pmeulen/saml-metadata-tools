@@ -39,15 +39,15 @@
 # http://ansible.cc/docs/modules.html#mysql-user
 - name: 'Update Mysql Root Password'
   mysql_user:
-    login_user=root
-    login_password="{{ database_root_password }}"
+    login_user: root
+    login_password: "{{ database_root_password }}"
     ## Useful to update root user only if it is in the initial configuration state
-    check_implicit_admin=true
-    name=root
-    host="{{ item }}"
-    password="{{ database_root_password }}"
-    priv=*.*:ALL,GRANT
-    state=present
+    check_implicit_admin: true
+    name: root
+    host: "{{ item }}"
+    password: "{{ database_root_password }}"
+    priv: "*.*:ALL,GRANT"
+    state: present
   with_items:
     - 127.0.0.1
     - ::1
