@@ -4,3 +4,6 @@
 *.pyc
 /.sconsign.dblite
 /.idea
+/ansible/dev-environment/*
+!/ansible/dev-environment/inventory
+!/ansible/dev-environment/host_vars/*
