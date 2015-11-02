@@ -1,2 +1,5 @@
 # IP address of the host that was assigned by Vagrant
 host_ipv4: 192.168.66.13
+
+## Root dir for the federation registry
+registry_root_dir: /usr/local/federation/registry

@@ -15,3 +15,14 @@ registry_ssl_certificate: "{{ lookup('file', inventory_dir+'/ssl_cert/registry.c
 # SSL Private key for the apache vhost
 # Format: PEM RSA PRIVATE KEY
 registry_ssl_key: "{{ lookup('file', inventory_dir+'/ssl_cert/registry.key') }}"
+
+## Root dir for installing the federation registry
+registry_root_dir: /usr/local/federation/registry
+
+## Database name for the registry
+database_registry_name: federation
+
+## User and password used by the federation registry to use the database
+database_registry_username: fedadmin
+database_registry_password: "{{ lookup('file', inventory_dir+'/password/database_registry_password') }}"
+database_root_password: "{{ lookup('file', inventory_dir+'/password/database_root_password') }}"

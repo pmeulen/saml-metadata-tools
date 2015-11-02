@@ -1,9 +1,69 @@
 ---
 
-- name: Install Shib SP, perl
+- name: Install Shib SP, perl, perl modules, mysql server
   apt: name={{ item }}
   with_items:
   - perl
+  - libtemplate-perl # Perl templating system
+  - libunicode-maputf8-perl
+  - libmime-encwords-perl
+  - libxml-libxml-perl
+  - bomstrip
+  - libdatetime-format-iso8601-perl
+  - libcrypt-openssl-x509-perl
+  - libcgi-simple-perl
+  - librose-db-object-perl
+  - libconfig-std-perl
+  - libtext-csv-perl
+  - libxalan2-java
+  - libdevel-nytprof-perl # TODO install this module only on dev/staging servers
   - libapache2-mod-shib2  # Installs shibd and mod_shib2, enbales mod_shib2
+  - mysql-server # TODO install the mysql server on a separate host
+  - python-mysqldb # Required by Ansible
+
+- name: create fedadmin group
+  group: name=fedadmin system=yes
+  
+- name: create fedadmin user
+  user: name=fedadmin comment="Federation Registry user" group=fedadmin system=yes createhome=no
+  
+- name: extend sudoers to allow registry CGI to run as fedadmin user
+  tags: sudoers
+  template: src=sudoers_registry_cgi.j2 dest=/etc/sudoers.d/90_federation_registry_cgi owner=root mode=0440 validate='visudo -cf %s'
+
+# TODO should move this MySQL configuration steps to a dedicated "mysql" role
+- name: Enable MySQL server on boot
+  service: name=mysql enabled=yes
+  
+# localhost needs to be the last item for idempotency, see
+# http://ansible.cc/docs/modules.html#mysql-user
+- name: 'Update Mysql Root Password'
+  mysql_user:
+    login_user=root
+    login_password="{{ database_root_password }}"
+    ## Useful to update root user only if it is in the initial configuration state
+    check_implicit_admin=true
+    name=root
+    host="{{ item }}"
+    password="{{ database_root_password }}"
+    priv=*.*:ALL,GRANT
+    state=present
+  with_items:
+    - 127.0.0.1
+    - ::1
+    - "{{ registry_vhost_name }}"
+    - localhost
+
+- name: configure fedadmin user for MySQL server
+  mysql_user:
+    login_user: root
+    login_password: "{{ database_root_password }}"
+    name: "{{ database_registry_username }}"
+    password: "{{ database_registry_password }}"
+    priv: "{{ database_registry_name }}.*:SELECT,INSERT,DELETE,UPDATE"
+
+
+#- name: Install Federation Registry
+
 
 # TODO: Rest of the registriy
