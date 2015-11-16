@@ -1,6 +1,0 @@
-# Required to run federation registry CGI as fedadmin user
-
-Defaults!/usr/local/federation/registry/bin/federation-registry.cgi !requiretty
-Defaults!/usr/local/federation/registry/bin/federation-registry.cgi !env_reset
-
-www-data ALL =(fedadmin) NOPASSWD:SETENV: {{ registry_root_dir }}/bin/federation-registry.cgi
