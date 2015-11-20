@@ -16,6 +16,9 @@
 SConstruct: The SCons equivalent of Makefile
 Convention is to use the name "SConstruct" for the main file and to name files included
 using SConscript() "SConscript"
+
+This SConstruct file takes care of the initialisation of the scons environment.
+The actual build actions are defined in the included SConscript file
 """
 
 from SCons.Script import *  # For PyCharm code completion
@@ -32,25 +35,34 @@ Some usefull Options:
 --tree=all         Dump the dependency tree
 """)
 
+root_dir=Dir('#').abspath   # Root directory (i.e. the directory of this SConstruct)
+
 # Don't let SCons look for most of the buildin tools (e.g. C compiler). Explicitly list the ones
 # we are interested in
 DefaultEnvironment(tools = [
-    'javah' # Detect JAVA_HOME
+    # 'javah' # Detect JAVA_HOME
 ])
 
-# Setup a build environment and add out own commands to it
+# Setup a build environment and add out own commands (tools) to it
 env = Environment(
-    tools = ['URLDownload', 'pyff', 'test'],
-    toolpath=['scons-tools'],
+    toolpath=[root_dir + '/scons-tools'],   # Look for the tools in the "scons-tools" directory
+    tools = [
+        'URLDownload',  # Download a file using HTTP
+        'pyff',         # Define and execute pyff pipelines
+        'test',         # Test command and tests
+        'xmlsectool'    # Execute xmlsectool
+    ],
     PYFF='/opt/pyff/bin/pyff',
+    URLDOWNLOAD_USEURLFILENAME=False,   # Make URLDownload tool use the target name we provide instead of the name in the URL
+    XMLSECTOOLSH="/opt/xmlsectool/xmlsectool.sh",
+    XMLSECTOOLSH_SIGN="sudo -u keystore /opt/xmlsectool/xmlsectool.sh",
+    XMLSECTOOLSH_SIGN_OPTS="--logConfig /opt/xmlsectool/logback.xml",
     #XMLLINT='path to xmllint'
 )
 
-# Make URLDownload tool use the target name we provide instead of the name in the URL
-env['URLDOWNLOAD_USEURLFILENAME'] = False
+env['ENV']['JAVA_HOME'] = "/usr/lib/jvm/java-7-openjdk-amd64/"
 
-# The directory to build into
-build_dir="build"
+build_dir=root_dir + "/build"   # The directory to build into
 # Make sure it exists
 Mkdir(build_dir)
 
@@ -60,10 +72,10 @@ Mkdir(build_dir)
 AllowSubstExceptions() # Report all variable expansion problems
 
 
-# Dump environment that is being used for building
-# When reproducing an error, use the same environment
-print "Building from directory: %s" % os.path.realpath(os.path.curdir)
-print 'Using build directory: %s'  % os.path.realpath(build_dir)
+# Dump environment that is being used for building in a way that can used from a shell
+# That allows using the same environment when reproducing a build error
+print "Building from directory: %s" % root_dir
+print 'Using build directory: %s'  % build_dir
 dict = env['ENV']
 keys = dict.keys()
 keys.sort()
@@ -73,4 +85,5 @@ for key in keys :
 print 'Environment: ' + '; '.join(exports)
 
 
+## Include the "SConscript" file that contains the build commands
 SConscript( 'SConscript', exports='env', variant_dir=build_dir, duplicate=1 )

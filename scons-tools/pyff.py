@@ -161,7 +161,12 @@ def _pyff_emitter(target, source, env):
     return target + list(target_add), source + list(source_add)
 
 
-# For use with Test Builder
+# Test whether the file is signed with the specified certificate
+# @param env environment object
+# @param certificate PEM encoded certificate
+# @param file XML file to check
+#
+# The "scripts/validatexmlsignature.sh" uses pyff to do the check
 def _TestXMLSignature(env, certificate, file="${SOURCE}") :
     script_path=env.File('scripts/validatexmlsignature.sh').srcnode().path  # Get path before applying variant_dir with srcnode()
     certificate_path=env.File(certificate).path
