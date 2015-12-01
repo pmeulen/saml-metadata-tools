@@ -131,6 +131,7 @@ print 'Environment: ' + '; '.join(exports)
 ## Include the "SConscript" file that contains the build commands
 if (build_dir != root_dir):
     Mkdir(build_dir) # Make sure it exists
+    env.SConsignFile(build_dir+'/.sconsign.dblite') # Store the ".sconsign.dblite" file in the build directory instead of in the root_dir
     SConscript( 'SConscript', exports='env', variant_dir=build_dir, duplicate=1 )
 else:
     SConscript( 'SConscript', exports='env' )
