@@ -60,7 +60,8 @@ env = Environment(
     #XMLLINT='path to xmllint'
 )
 
-env['ENV']['JAVA_HOME'] = "/usr/lib/jvm/java-7-openjdk-amd64/"
+if 'JAVA_HOME' not in env['ENV']:
+    env['ENV']['JAVA_HOME'] = env.subst('$JAVA_HOME')
 
 build_dir=root_dir + "/build"   # The directory to build into
 # Make sure it exists
