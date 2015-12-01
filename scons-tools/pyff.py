@@ -105,7 +105,7 @@ def _pyff(env, source, target=[], select=None, remove=[], finalize=None) :
     source_nodes.append( (fd_node, None) )
     env.Clean(c1, fd_node)
 
-    c2 = env.Command( target_node, [ s[0] for s in source_nodes ], ["# Building $TARGET", "$PYFF --loglevel=INFO "+fd_node.path] )
+    c2 = env.Command( target_node, [ s[0] for s in source_nodes ], ["# Building $TARGET", "$PYFF --loglevel=${PYFF_LOGLEVEL} "+fd_node.path] )
 
     return [ c1, c2 ]
 

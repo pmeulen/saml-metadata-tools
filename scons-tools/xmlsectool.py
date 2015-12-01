@@ -23,7 +23,7 @@ def _Sign( env, target, source, keystore="$XMLSECTOOLSH_KEYSTORE", key="$XMLSECT
         command_str="${XMLSECTOOLSH_SIGN}"
     else:
         command_str="${XMLSECTOOLSH}"
-    command_str += " --sign --inFile $SOURCE --outFile $TARGET --keystore %s --key %s --keyPassword %s" % (keystore, key, keyPassword)
+    command_str += " --sign --inFile $SOURCE --outFile $TARGET --keystore %s --key %s --keyPassword %s" % (env.subst(keystore), env.subst(key), env.subst(keyPassword))
     if 'XMLSECTOOLSH_SIGN_OPTS' in env:
         command_str+=" ${XMLSECTOOLSH_SIGN_OPTS}"
     return env.Command( target, source, command_str)
