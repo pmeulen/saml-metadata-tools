@@ -1,9 +1,23 @@
 import os, sys, threading, time, hashlib
 
-# Files generated using:
+# reader.py slowly read a file and verifies that the file read matches on of the
+# predefined checksums
+# It expects a file named "file" in the current directory and will keep reading this file.
+#
+# The purpose of this script is to verify behaviour when a file is being updated while it is being read.
+# Safe file update example:
+# $ cp file1 file1.tmp; mv file1.tmp file
+# Unsafe example:
+# $ cp file1 file
+
+# Files can be generated using:
 # $ dd bs=1024 count=1024 if=/dev/urandom of=file1
-# Then
-# shasum file1
+# $ dd bs=1024 count=1024 if=/dev/urandom of=file2
+# Then:
+# shasum file1; shasum file2
+# Put calculated SHA-1 checksum in test_files_sha1 below
+
+test_files_sha1 = ( '3926c59c7ed147f25e798ebac377512560990ebc', '07d61ae9bc49ddb9d68719043efbbc8295c3ff6d' )
 
 data_ready = threading.Event()
 
@@ -19,7 +33,7 @@ print "Reading file, press ENTER to exit"
 poller = KeyboardPoller()
 poller.start()
 
-test_files_sha1 = ( '3926c59c7ed147f25e798ebac377512560990ebc', '07d61ae9bc49ddb9d68719043efbbc8295c3ff6d' )
+
 
 while not data_ready.isSet():
     try:
