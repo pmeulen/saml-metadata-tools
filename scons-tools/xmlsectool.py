@@ -30,8 +30,7 @@ def _Sign( env, target, source, keystore="$XMLSECTOOLSH_KEYSTORE", key="$XMLSECT
 
 def generate( env ) :
     _detect(env)
-    if 'XMLSECTOOLSH' in env :
-        env.AddMethod( _Sign, "XML_Sign" )
+    env.AddMethod( _Sign, "XML_Sign" )
 
 # @param env environment object
 # @return true
