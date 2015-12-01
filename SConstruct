@@ -25,11 +25,21 @@ from SCons.Script import *  # For PyCharm code completion
 import os.path
 
 Help("""
-To build all targets, just type: "scons"
+To build all targets, type: "scons"
+To use a build directory, type: scons --build-dir /tmp/build
 To build a specific target, type: scons <name of target>
-(Note: that target must include the build dir. E.g. "build/some-output.xml"
+Note: that the target must include the build dir specified in using the --build-dir option.
+E.g. "scons --build-dir build build/some-output.xml"
 
-Some usefull Options:
+SConstruct specific (aka local) options:
+--build-dir        Specify alternate build directory
+--config-file      Specify configuration file, defaults to 'config.py'
+--show-variables   Show the available variables with their current an default values
+
+The config file is a python file that can contain any of the variables, variables can also be specified
+at the scons command line. E.g. "scons --build-dir build PYFF_LOGLEVEL=DEBUG"
+
+Some usefull scons Options:
 --clean            Remove generated files
 --debug=explain    Explain why someting is build
 --tree=all         Dump the dependency tree
@@ -37,14 +47,52 @@ Some usefull Options:
 
 root_dir=Dir('#').abspath   # Root directory (i.e. the directory of this SConstruct)
 
+AddOption('--build-dir', dest='build-dir', type='string', nargs=1, action='store', metavar='BUILDDIR',
+          help='build directory',
+          default=root_dir )
+build_dir = GetOption('build-dir')   # The directory to build into
+
+AddOption('--show-variables', dest='show-variables', action='store_true', default=False)
+
+AddOption('--config-file', dest='config-file', type='string', nargs=1, action='store', metavar='CONFIGFILE',
+          help='configuration file',
+          default='config.py' )
+config_file = os.path.abspath( GetOption('config-file') )   # File containing variables
+
+
+# Variables for setting system dependent configuration
+# Variables can be specified in the "config.py "config file (use the --config-file option to specify
+# an alternate file). The systax of the file is python E.g.:
+# PYFF='/opt/pyff/bin/pyff'
+# Variables can also be specifed on the commandline directly. These will override those read from the
+# configuration file. E.g.:
+# scons --build-dir=build PYFF=/opt/pyff/bin/pyff
+vars = Variables(config_file)
+vars.Add('PYFF', 'Command to run pyFF')
+vars.Add(EnumVariable('PYFF_LOGLEVEL', 'pyFF log level', 'INFO', allowed_values=('INFO', 'DEBUG')))
+vars.Add('XMLSECTOOLSH', 'Command to run xmlsectool')
+vars.Add('XMLSECTOOLSH_SIGN', 'Command to sign using xmlsectool')
+vars.Add('XMLSECTOOLSH_KEYSTORE', 'JAVA keystore file to use when signing using xmlsectool')
+vars.Add('XMLSECTOOLSH_KEYSTORE_KEY', 'Name of the key in the keystore to use when using xmlsectool')
+vars.Add('XMLSECTOOLSH_KEYSTORE_PASSWORD', 'Password for the JAVA keystore', 'password')
+vars.Add('XMLLINT', 'Command to run xmllint')
+vars.Add('JAVA_HOME', 'Path to the Java JRE')
+vars.Add('FETCH_MD_COMMAND', 'Command that outputs federation metadata')
+
 # Don't let SCons look for most of the buildin tools (e.g. C compiler). Explicitly list the ones
 # we are interested in
 DefaultEnvironment(tools = [
-    # 'javah' # Detect JAVA_HOME
+     'javah' # Detect JAVA_HOME
 ])
+
+# Disable default handing of problems during value expansion
+# Variable expansion: The replacement of $PYFF, $SOURCE, $TARGET etc by their actual values
+# AllowSubstExceptions(NameError, IndexError)  # Default - ignore missing variables during expansion
+AllowSubstExceptions() # Report all variable expansion problems
 
 # Setup a build environment and add out own commands (tools) to it
 env = Environment(
+    variables=vars,
     toolpath=[root_dir + '/scons-tools'],   # Look for the tools in the "scons-tools" directory
     tools = [
         'URLDownload',  # Download a file using HTTP
@@ -52,31 +100,26 @@ env = Environment(
         'test',         # Test command and tests
         'xmlsectool'    # Execute xmlsectool
     ],
-    PYFF='/opt/pyff/bin/pyff',
     URLDOWNLOAD_USEURLFILENAME=False,   # Make URLDownload tool use the target name we provide instead of the name in the URL
-    XMLSECTOOLSH="/opt/xmlsectool/xmlsectool.sh",
-    XMLSECTOOLSH_SIGN="sudo -u keystore /opt/xmlsectool/xmlsectool.sh",
-    XMLSECTOOLSH_SIGN_OPTS="--logConfig /opt/xmlsectool/logback.xml",
-    #XMLLINT='path to xmllint'
 )
 
 if 'JAVA_HOME' not in env['ENV']:
     env['ENV']['JAVA_HOME'] = env.subst('$JAVA_HOME')
 
-build_dir=root_dir + "/build"   # The directory to build into
-# Make sure it exists
-Mkdir(build_dir)
+if GetOption('show-variables'):
+    print vars.GenerateHelpText(env)
+    print "Exiting because of --show-variables option"
+    exit(0)
 
-# Disable default handing of problems during value expansion
-# Variable expansion: The replacement of $PYFF, $SOURCE, $TARGET etc by their actual values
-# AllowSubstExceptions(NameError, IndexError)  # Default - ignore missing variables during expansion
-AllowSubstExceptions() # Report all variable expansion problems
-
+# Unknown variables
+if vars.UnknownVariables():
+    print "Warning: Unrecognised variables on the command line: " + str(vars.UnknownVariables())
 
 # Dump environment that is being used for building in a way that can used from a shell
 # That allows using the same environment when reproducing a build error
 print "Building from directory: %s" % root_dir
 print 'Using build directory: %s'  % build_dir
+print 'Reading configuration from: %s'  % config_file
 dict = env['ENV']
 keys = dict.keys()
 keys.sort()
@@ -85,6 +128,9 @@ for key in keys :
     exports.append( "export %s=%s" % (key, dict[key]) )
 print 'Environment: ' + '; '.join(exports)
 
-
 ## Include the "SConscript" file that contains the build commands
-SConscript( 'SConscript', exports='env', variant_dir=build_dir, duplicate=1 )
+if (build_dir != root_dir):
+    Mkdir(build_dir) # Make sure it exists
+    SConscript( 'SConscript', exports='env', variant_dir=build_dir, duplicate=1 )
+else:
+    SConscript( 'SConscript', exports='env' )
