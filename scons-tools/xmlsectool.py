@@ -17,9 +17,7 @@ def _detect(env) :
 
 # xmlsectool.sh --sign --inFile in.xml --outFile out.xml --referenceIdAttributeName ID --digest SHA-256
 
-def _Sign( env, target, source, keystore, key, keyPassword, digest='SHA=256'):
-    # action="sudo -u keystore /opt/xmlsectool/xmlsectool.sh --sign --inFile $SOURCE --outFile $TARGET --keystore /opt/keystore/md-signing.jks --key md-signing --keyPassword password --logConfig /opt/xmlsectool/logback.xml"
-
+def _Sign( env, target, source, keystore="$XMLSECTOOLSH_KEYSTORE", key="$XMLSECTOOLSH_KEYSTORE_KEY", keyPassword="$XMLSECTOOLSH_KEYSTORE_PASSWORD", digest='SHA=256'):
     command_str=""
     if 'XMLSECTOOLSH_SIGN' in env:
         command_str="${XMLSECTOOLSH_SIGN}"
