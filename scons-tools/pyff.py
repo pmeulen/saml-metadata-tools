@@ -31,6 +31,8 @@ import SCons.Builder, SCons.Util
 import re
 import yaml
 import hashlib
+import os
+import string
 
 
 """ Build command for exececuting pyff
@@ -92,7 +94,8 @@ def _pyff(env, source, target=[], select=None, remove=[], finalize=None) :
     fd+='- publish:\n'
     fd+='    output: ' + target_node.path + '\n'
 
-    fd_filename = "pyff_" + hashlib.sha1(fd).hexdigest() + ".fd"
+    target_name = os.path.basename(target_node.path).translate(string.maketrans(' /\\', '___'))
+    fd_filename = "pyff_" + target_name + '_' + hashlib.sha1(fd).hexdigest() + ".fd"
     fd_node = env.File( fd_filename )
     #env.AlwaysBuild(fd_node)
 
@@ -105,7 +108,8 @@ def _pyff(env, source, target=[], select=None, remove=[], finalize=None) :
     source_nodes.append( (fd_node, None) )
     env.Clean(c1, fd_node)
 
-    c2 = env.Command( target_node, [ s[0] for s in source_nodes ], ["# Building $TARGET", "$PYFF --loglevel=${PYFF_LOGLEVEL} "+fd_node.path] )
+    # Note: pyff creates a .cache directory in current directory (i.e. the root dir, not the build dir)
+    c2 = env.Command( target_node, [ s[0] for s in source_nodes ], ["$PYFF --loglevel=${PYFF_LOGLEVEL} "+fd_node.path] )
 
     return [ c1, c2 ]
 
