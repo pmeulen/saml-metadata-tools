@@ -46,7 +46,10 @@ source: The source XML metadata files to include. Accepted inputs:
 target: File to publish. String or Node.
 select: String. XPath to use in select
 remove: Optional. String or list of strings of EntityIDs to remove from the selection.
-finalize: Optional. Tuple of (Name, cacheDuration, validUntil)
+finalize: Optional. Tuple of attributes to set on the SAML 2.0 EntitiesDescriptor (Name, cacheDuration, validUntil)
+          - Name: String identifying this metadata (URI)
+          - cacheDuration: Recommended cache duration for clients. XML timedelta expression. E.g. cache for one hour: PT1H
+          - validUntil: Expiry date. ISO 8601 time string or XML timedelta expression. E.g. valid for 6 days starting now: PT6D
 
 The order of the generated pipeline is:
 - load: Load files specified in source
@@ -73,24 +76,27 @@ def _pyff(env, source, target=[], select=None, remove=[], finalize=None) :
         remove=[remove]
 
     # Generate fd file
-    fd= '- load:\n'
+    fd= '- load max_workers 1 timeout 10 validate True fail_on_error True filter_invalid False:\n'
     for s in source_nodes :
         fd+='  - ' + s[0].path
         if s[1]:
             fd+=' as ' + s[1]
         fd+='\n'
     if select:
-        fd+='- select: "' + select + '"\n'
+        fd+='- select: "' + env.subst(select) + '"\n'
     if remove:
         fd+='- fork merge remove:\n'
         fd+='  - select:\n'
         for r in remove :
-            fd+='    - ' + r + '\n'
+            fd+='    - ' + env.subst(r) + '\n'
     if finalize:
+        if len(finalize) < 3:
+            raise ValueError('pyff: finalize argument requires tuple of (Name, cacheDuration, validUntil)')
+
         fd+='- finalize:\n'
-        fd+='    Name: ' + finalize[0] + '\n'
-        fd+='    cacheDuration: ' + finalize[1] + '\n'
-        fd+='    validUntil: ' + finalize[2] + '\n'
+        fd+='    Name: ' + env.subst(finalize[0]) + '\n'
+        fd+='    cacheDuration: ' + env.subst(finalize[1]) + '\n'
+        fd+='    validUntil: ' + env.subst(finalize[2]) + '\n'
     fd+='- publish:\n'
     fd+='    output: ' + target_node.path + '\n'
 
