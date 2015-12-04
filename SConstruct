@@ -26,10 +26,11 @@ import os.path
 
 Help("""
 To build all targets, type: "scons"
-To use a build directory, type: scons --build-dir /tmp/build
+To use a build directory, type: scons --build-dir=/tmp/build
 To build a specific target, type: scons <name of target>
-Note: that the target must include the build dir specified in using the --build-dir option.
-E.g. "scons --build-dir build build/some-output.xml"
+Note: The target must include the build dir specified using the --build-dir option. The '=' between
+      options and values on the command line is required.
+E.g. "scons --build-dir=/tmp/build /tmp/build/some-output.xml"
 
 SConstruct specific (aka local) options:
 --build-dir        Specify alternate build directory
@@ -37,7 +38,7 @@ SConstruct specific (aka local) options:
 --show-variables   Show the available variables with their current an default values
 
 The config file is a python file that can contain any of the variables, variables can also be specified
-at the scons command line. E.g. "scons --build-dir build PYFF_LOGLEVEL=DEBUG"
+at the scons command line. E.g. "scons --build-dir=build PYFF_LOGLEVEL=DEBUG"
 
 Some usefull scons Options:
 --clean            Remove generated files
@@ -129,6 +130,11 @@ exports=[]
 for key in keys :
     exports.append( "export %s=%s" % (key, dict[key]) )
 print 'Environment: ' + '; '.join(exports)
+
+if len(COMMAND_LINE_TARGETS) > 0:
+    print "Building target(s): " + ', '.join(COMMAND_LINE_TARGETS)
+else:
+    print "Building all targets"
 
 ## Include the "SConscript" file that contains the build commands
 if (build_dir != root_dir):
