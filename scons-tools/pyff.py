@@ -172,6 +172,7 @@ def _pyff_emitter(target, source, env):
 
 
 # Test whether the file is signed with the specified certificate
+# Test action for use with the "Test" builder
 # @param env environment object
 # @param certificate PEM encoded certificate
 # @param file XML file to check

@@ -63,7 +63,7 @@ config_file = os.path.abspath( GetOption('config-file') )   # File containing va
 
 # Variables for setting system dependent configuration
 # Variables can be specified in the "config.py "config file (use the --config-file option to specify
-# an alternate file). The systax of the file is python E.g.:
+# an alternate file). The syntax of the file is python E.g.:
 # PYFF='/opt/pyff/bin/pyff'
 # Variables can also be specifed on the commandline directly. These will override those read from the
 # configuration file. E.g.:
@@ -77,6 +77,7 @@ vars.Add('XMLSECTOOLSH_KEYSTORE', 'JAVA keystore file to use when signing using 
 vars.Add('XMLSECTOOLSH_KEYSTORE_KEY', 'Name of the key in the keystore to use when using xmlsectool')
 vars.Add('XMLSECTOOLSH_KEYSTORE_PASSWORD', 'Password for the JAVA keystore', 'password')
 vars.Add('XMLLINT', 'Command to run xmllint')
+vars.Add('XSLTPROC', 'Command to run xsltproc')
 vars.Add('JAVA_HOME', 'Path to the Java JRE')
 vars.Add('FETCH_MD_COMMAND', 'Command that outputs federation metadata')
 vars.Add('METADATA_VALID_UNTIL', 'Validity period for generated metadata', 'PT6D')

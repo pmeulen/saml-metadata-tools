@@ -17,7 +17,8 @@ import SCons.Builder, SCons.Node.FS, SCons.Errors, SCons.Action
 from SCons.Script import *
 
 
-# This is a pseudo-builder, it generates a build command
+# This is a "Test" builder
+# It is a SCons pseudo-builder that generates a build command
 # Like a builder it returns a list of target node objects
 
 # This builder creates a command from the actions provided in "tests"
@@ -29,10 +30,14 @@ from SCons.Script import *
 # @param env environment object
 # @param target target node
 # @param source target node
-# @param tests list of tests
+# @param tests list of test actions
 #
-# A test is an dict: { 'action': SCons.Action, 'depends': (list of) Node/filenames }
-# - action is mandatory and is the action that executes the test
+# A test action must return a dict with the following format:
+# {
+#     'action': SCons.Action,
+#     'depends': (list of) Node/filenames
+# }
+# - action is mandatory and is the action that executes the test. A test returns 0 on succes, nonzero otherwise.
 # - depends is optional. It can be used to add additional dependencies to the test
 def _test(env, target, source, tests = []) :
     actions = []
@@ -51,11 +56,26 @@ def _test(env, target, source, tests = []) :
     return nodes
 
 
-# Test an XML file for well formedness
+# Test an XML file for well-formedness
+# Test action for use with the "Test" builder
 # @param env environment object
 # @param file file to test
 def _TestXMLWellFormedAction(env, file="${SOURCE}") :
     return { 'action': SCons.Action.Action("${XMLLINT} --noout --nonet " + file) }
+
+
+# Test an XML file using an XSLT with xsltproc
+# Test action for use with the "Test" builder
+# The test fails when xsltproc return != 0. Use e.g. '<xsl:message terminate="yes">' in the xslt to return an
+# error condition from the XSLT
+# @param env environment object
+# @param xslt XSLT template containing the test
+# @param file file to test
+def _TestXSLT(env, xslt, file="${SOURCE}") :
+    return {
+        'action': SCons.Action.Action("${XSLTPROC} " + xslt + " " + file),
+        'depends': xslt
+    }
 
 
 # generate function, that adds the builder to the environment,
@@ -67,18 +87,23 @@ def generate( env ) :
     # Add the "Test" command to the environment
     env.AddMethod(_test, "Test")
 
-    xmllint = _detect(env)
+    (xmllint, xsltproc) = _detect(env)
     if xmllint:
         env['XMLLINT'] = xmllint
         env.AddMethod(_TestXMLWellFormedAction, "TestXMLWellFormed")
-
+    if xsltproc:
+        env['XSLTPROC'] = xsltproc
+        env.AddMethod(_TestXSLT, "TestXSLT")
 
 def _detect(env) :
     xmllint = env.WhereIs('xmllint')
     if ('XMLLINT' in env) :
         xmllint = env['XMLLINT']
+    xsltproc = env.WhereIs('xsltproc')
+    if ('XSLTPROC' in env) :
+        xmllint = env['XSLTPROC']
 
-    return xmllint
+    return (xmllint, xsltproc)
 
 # existing function of the builder
 # @param env environment object
