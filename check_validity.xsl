@@ -30,9 +30,9 @@
     <xsl:template match="text()|comment()|@*"/>
          
     <xsl:template match="/">
-        <xsl:if test="count(/md:EntitiesDescriptor|md:EntitiyDescriptor)!=1">
+        <xsl:if test="count(/md:EntitiesDescriptor|/md:EntityDescriptor)!=1">
             <xsl:message terminate="yes">
-                <xsl:text>[ERROR] Root element must be EntitiesDescriptor or EntitiyDescriptor. Found: </xsl:text>
+                <xsl:text>[ERROR] Root element must be EntitiesDescriptor or EntityDescriptor. Found: </xsl:text>
                 <xsl:value-of select="name(/*)"/>
             </xsl:message>            
         </xsl:if>
