@@ -54,7 +54,7 @@
         -->                
         <xsl:if test="substring(date:difference(date:add(date:date-time(), 'PT15M'), @validUntil), 1, 1) = '-'">
             <xsl:message terminate="yes">
-                <xsl:text>[ERROR] Metadata expired. Metadata must be valid for at least 15 minutes. The validUntil attribute on the EntitiesDescriptor is '</xsl:text>
+                <xsl:text>[ERROR] Metadata expired. Metadata must be valid for at least 15 more minutes. The validUntil attribute on the Entit(y|ies)Descriptor is '</xsl:text>
                 <xsl:value-of select="@validUntil"/>
                 <xsl:text>' the current time is </xsl:text>
                 <xsl:value-of select="date:date-time()"/>
