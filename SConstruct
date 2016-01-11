@@ -33,12 +33,14 @@ Note: The target must include the build dir specified using the --build-dir opti
 E.g. "scons --build-dir=/tmp/build /tmp/build/some-output.xml"
 
 SConstruct specific (aka local) options:
---build-dir        Specify alternate build directory
---config-file      Specify configuration file, defaults to 'config.py'
---show-variables   Show the available variables with their current an default values
+--build-dir         Specify alternate build directory
+--config-file       Specify configuration file, defaults to 'config.py'
+--show-variables    Show the available variables with their current an default values
+--fetch-metadata    Fetch remote metadata (default)
+--no-fetch-metadata Do not fetch remote metadata
 
 The config file is a python file that can contain any of the variables, variables can also be specified
-at the scons command line. E.g. "scons --build-dir=build PYFF_LOGLEVEL=DEBUG"
+at the scons command line. E.g. "scons --build-dir=build --no-fetch-metadata PYFF_LOGLEVEL=DEBUG"
 
 Some usefull scons Options:
 --clean            Remove generated files
@@ -53,13 +55,18 @@ AddOption('--build-dir', dest='build-dir', type='string', nargs=1, action='store
           default=root_dir )
 build_dir = GetOption('build-dir')   # The directory to build into
 
-AddOption('--show-variables', dest='show-variables', action='store_true', default=False)
+AddOption('--show-variables', dest='show-variables', action='store_true', default=False,
+          help='Show the available build variables')
+
+AddOption('--fetch-metadata', dest='fetch-metadata', action='store_true', default=True,
+          help='Fetch remote metadata')
+AddOption('--no-fetch-metadata', dest='fetch-metadata', action='store_false', default=True,
+          help='Disable fetching of remote metadata')
 
 AddOption('--config-file', dest='config-file', type='string', nargs=1, action='store', metavar='CONFIGFILE',
           help='configuration file',
           default='config.py' )
 config_file = os.path.abspath( GetOption('config-file') )   # File containing variables
-
 
 # Variables for setting system dependent configuration
 # Variables can be specified in the "config.py "config file (use the --config-file option to specify
@@ -119,11 +126,30 @@ if GetOption('show-variables'):
 if vars.UnknownVariables():
     print "Warning: Unrecognised variables on the command line: " + str(vars.UnknownVariables())
 
+fetch_metadata = GetOption('fetch-metadata') # Whether to fetch / update metadata from external systems
+
+download_dir=root_dir   # Directory to store downloaded files
+if (build_dir != root_dir):
+    if Execute(Mkdir(build_dir)): # Make sure build dir exists
+        print "Could not create build directory: %s" % build_dir
+        Exit(1)
+    build_dir=Dir(build_dir).abspath
+    env.SConsignFile(build_dir+'/.sconsign.dblite') # Store the ".sconsign.dblite" file in the build directory instead of in the root_dir
+    download_dir=root_dir+"/download/"+build_dir
+    if Execute(Mkdir(download_dir)): # Make sure downloads dir exists
+        print "Could not create download directory: %s" % download_dir
+        Exit(1)
+
+env['DOWNLOAD_DIR'] = download_dir
+env['DO_DOWNLOAD'] = fetch_metadata
+
 # Dump environment that is being used for building in a way that can used from a shell
 # That allows using the same environment when reproducing a build error
-print "Building from directory: %s" % root_dir
+print 'Building from directory: %s' % root_dir
 print 'Using build directory: %s'  % build_dir
 print 'Reading configuration from: %s'  % config_file
+print 'Using download directory: %s' % download_dir
+print 'Fetch / update remote metadata: %s' % fetch_metadata
 dict = env['ENV']
 keys = dict.keys()
 keys.sort()
@@ -137,10 +163,19 @@ if len(COMMAND_LINE_TARGETS) > 0:
 else:
     print "Building all targets"
 
-## Include the "SConscript" file that contains the build commands
+## Include the "SConscript" and "SConscript.download" files that contains the build commands
+
 if (build_dir != root_dir):
-    Mkdir(build_dir) # Make sure it exists
-    env.SConsignFile(build_dir+'/.sconsign.dblite') # Store the ".sconsign.dblite" file in the build directory instead of in the root_dir
     SConscript( 'SConscript', exports='env', variant_dir=build_dir, duplicate=1 )
+    Clean('.', build_dir) # Clean build dir as part of clean action (-c, --clean)
 else:
     SConscript( 'SConscript', exports='env' )
+
+# Because downloaded files will be removed from a variant_dir by scons, SConscript.downloads is not build in a
+# variant_dir.
+# All build commands (either in SConscript or SConscript.download) must use the "${DOWNLOAD_DIR}" from the env in
+# targets and sources to refer to these files.
+# Download commands should only have targets in DOWNLOAD_DIR
+# Actions from the SConscript must not have targets in DOWNLOAD_DIR (only sources)
+if fetch_metadata:
+    SConscript( 'SConscript.download', exports='env')  # For downloading files into DOWNLOAD_DIR
