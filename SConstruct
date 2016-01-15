@@ -130,18 +130,11 @@ fetch_metadata = GetOption('fetch-metadata') # Whether to fetch / update metadat
 
 download_dir=root_dir   # Directory to store downloaded files
 if (build_dir != root_dir):
-    if Execute(Mkdir(build_dir)): # Make sure build dir exists
-        print "Could not create build directory: %s" % build_dir
-        Exit(1)
     build_dir=Dir(build_dir).abspath
     env.SConsignFile(build_dir+'/.sconsign.dblite') # Store the ".sconsign.dblite" file in the build directory instead of in the root_dir
     download_dir=root_dir+"/download/"+build_dir
-    if Execute(Mkdir(download_dir)): # Make sure downloads dir exists
-        print "Could not create download directory: %s" % download_dir
-        Exit(1)
 
-env['DOWNLOAD_DIR'] = download_dir
-env['DO_DOWNLOAD'] = fetch_metadata
+env['DOWNLOAD_DIR'] = download_dir # Make the download dir available in the environment
 
 # Dump environment that is being used for building in a way that can used from a shell
 # That allows using the same environment when reproducing a build error
