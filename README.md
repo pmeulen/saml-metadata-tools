@@ -1,21 +1,39 @@
-# Set of tools for processing SAML metadata
+# Set of tools for processing, signing SAML metadata
  
-The repository contains a work in progress. It the [SCons](http://www.scons.org) tools and "makefile" for 
-generating RENATER metadata.
+The repository contains a work in progress. It uses the [SCons](http://www.scons.org) tools and "makefile" 
+(SConstruct) for generating SAML 2 metadata for an identity federation.
 
-## SCons
+The inluded tools are currently used at [RENATER](http://www.renater.fr). The SConstruct and some of the
+scripts used are not yet published in this repo. We plan to add a generic working example of these later.
 
-Note: The SCons software is not deployed to the development VM yet. To run it in the development VM you
-need to copy the files of this repo into it.
+The included scons tools allow:
 
-### Running it
+- Downloading (metadata) files from remote servers
+- Running tests agins files:
+  - XML Signature verification
+  - XML syntac verification using xmllint
+  - Verification using tests defined in an XSLT using 
+- Dynammically generating and running [pyff](https://pythonhosted.org/pyFF/) pipeline (.py) files
+- Signing using [xmlsectool](https://wiki.shibboleth.net/confluence/display/SHIB2/XmlSecTool)
 
-Run `scons` to start the build. This command runs the `SConstruct` file.
+## Required tools
 
-The SConstruct takes care of the initialisation of scons build environment. The actual build rules are in the
-`SConscript` file that it includes. Currently the build expects two files to be present:
+The scons tools included in the project use several external tools. Below some notes on installing or getting these:
+ 
+### pyFF
 
-1. cru-metadata.xml.in
-2. renater-metadata.xml.in
+Note that the pyff tool uses pyff options in the "load" command that are not yet released. For a prebuild development 
+version of pyff that included these features see: 
+https://github.com/pmeulen/pyFF/releases/tag/0.10.0dev1-RENATER
 
-These must be added manually.
+More info on pyff can be found on the pyFF project page: https://pythonhosted.org/pyFF/
+
+### xmlsectool
+
+Download and install xmlsectool using the instruction at the projects page: 
+https://wiki.shibboleth.net/confluence/display/SHIB2/XmlSecTool
+
+### xmllint and xsltproc
+
+The [xmllint](http://xmlsoft.org/) and [xsltproc](http://xmlsoft.org/XSLT/) included in a typical linux distribution 
+should work fine.
