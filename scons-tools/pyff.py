@@ -37,58 +37,90 @@ import string
 
 """ Build command for exececuting pyff
 The pyff pipeline (.fd) file is generated from the parameters given to this function
+This function supports a subset of the pyff functionality, it is not a full replacement for a full custom pyff pipeline
 
-source: The source XML metadata files to include. Accepted inputs:
-        - String or Node  object: Single source
-        - List of Strings / nodes: One or more sources
-        - Dictionary: One or more sources: key is the selector that can be used in the select string, the value
-                      is the name of the file
-target: File to publish. String or Node.
-select: String. XPath to use in select
-remove: Optional. String or list of strings of EntityIDs to remove from the selection.
+source:  The source SAML 2.0 XML metadata file(s) to include. Note that a source should be a file on disk.
+         A metadata file can have an EntityDescriptor or an EntitiesDescriptor as root element
+         When sthe same EntityID occurs in multiple files the order of the source files decides which EntityDescriptor
+         will be included in the output. Entities from the first source file listed take precedence over entities in the
+         second source file, which take precedence over those listed in the third etc.
+         Accepted inputs:
+         - String or Node object: A single source file is loaded
+         - List of Strings / nodes: All the sources in the list are loaded
+         - Dictionary of key => source: All the sources in the dictionary are loaded: The "key" can be used is the
+           select string
+target:  Output file. String or Node.
+select:  Optional. String or list of strings of XPaths to select the EntityDescriptors to output. When left blank all the
+         entities in the source file(s) are selected for output.
+         A select statement takes the form: "<key>!<xpath expression>"
+         Examples:
+         "!//md:EntityDescriptor[md:IDPSSODescriptor]" - select all entities that contain an IDPSSODescriptor
+         "SOURCE_1!//md:EntityDescriptor" - select all entities from the file loaded with key "SOURCE_1"
+         "SOURCE_0" - select all entities loaded with key "SOURCE_0"
+remove:  Optional. String or list of strings of EntityIDs to remove from the selection.
 finalize: Optional. Tuple of attributes to set on the SAML 2.0 EntitiesDescriptor (Name, cacheDuration, validUntil)
           - Name: String identifying this metadata (URI)
           - cacheDuration: Recommended cache duration for clients. XML timedelta expression. E.g. cache for one hour: PT1H
-          - validUntil: Expiry date. ISO 8601 time string or XML timedelta expression. E.g. valid for 6 days starting now: PT6D
+          - validUntil: Expiry date. ISO 8601 time string or XML timedelta expression. E.g. valid for 6 days starting
+             now: PT6D
+xslt:    Optional. String or Node object. The xslt stylesheet to apply to the output
 
 The order of the generated pipeline is:
-- load: Load files specified in source
-- select: Select entities by select XPath
+- load: Load the file(s) specified in source. This makes these files available for selection
+- select: Select entities by select XPath. If no select is provided all loaded entities are selected.
 - remove: Remove entities from selection by EntityID
 - finalize: Set Name, cacheDuration and validUntil
+- xslt: Apply XSLT stylesheet
 - publish: Write metadata to target
 """
 # Stand alone peudo builder
 # Returns target nodes
-def _pyff(env, source, target=[], select=None, remove=[], finalize=None) :
+def _pyff(env, source, target=[], select=None, remove=[], finalize=None, xslt=None) :
 
     target_node=env.File(target)
     source_nodes=None   # Make list of (Node, selecor)
     if SCons.Util.is_Dict(source):
         source_nodes=[ (env.File(source[s]), s) for s in source]
     elif SCons.Util.is_List(source):
-        source_nodes=[ (env.File(s), None) for s in source]
+        source_nodes=[ (env.File(s[1]), "SOURCE_%s" % s[0]) for s in enumerate(source)]
     else:
-        source_nodes=[ (env.File(source), None) ]
-        source=[source]
+        source_nodes=[ (env.File(source), "SOURCE_0") ]
 
     if not SCons.Util.is_List(remove):
         remove=[remove]
 
-    # Generate fd file
+    if select and not SCons.Util.is_List(select):
+        select=[select]
+
+    ## Generate the fd file for pyff
+    # Load
     fd= '- load max_workers 1 timeout 10 validate True fail_on_error True filter_invalid False:\n'
     for s in source_nodes :
-        fd+='  - ' + s[0].path
-        if s[1]:
-            fd+=' as ' + s[1]
+        fd+='  - ' + s[0].path +' as ' + s[1]
         fd+='\n'
+
+    # Select
     if select:
-        fd+='- select: "' + env.subst(select) + '"\n'
+        fd+='- select:\n'
+        for s in select :
+            fd+='  - "' + env.subst(s) + '"\n'
+    else:
+        fd+='- select\n'
+
+    # Make earlier of loaded sources take priority over later loaded ones.
+    # A "fork merge replace_existing" will replace each EntityDescriptor in the main branch that also exists in the fork
+    # by that from the fork. Comperison of EntityDescriptors is done by EntityID
+    if len(source_nodes) > 1:
+        for s in reversed(source_nodes[0:-1]):  # iterate over sources from N-1 to 0.
+            fd+="- fork merge replace_existing:\n"
+            fd+="  - select: " + s[1] + "\n"
+
     if remove:
         fd+='- fork merge remove:\n'
         fd+='  - select:\n'
         for r in remove :
             fd+='    - ' + env.subst(r) + '\n'
+
     if finalize:
         if len(finalize) < 3:
             raise ValueError('pyff: finalize argument requires tuple of (Name, cacheDuration, validUntil)')
@@ -97,6 +129,13 @@ def _pyff(env, source, target=[], select=None, remove=[], finalize=None) :
         fd+='    Name: ' + env.subst(finalize[0]) + '\n'
         fd+='    cacheDuration: ' + env.subst(finalize[1]) + '\n'
         fd+='    validUntil: ' + env.subst(finalize[2]) + '\n'
+
+    xslt_node=None
+    if xslt:
+        xslt_node=env.File(xslt)
+        fd+='- xslt:\n'
+        fd+='    stylesheet: ' + xslt_node.path + '\n'
+
     fd+='- publish:\n'
     fd+='    output: ' + target_node.path + '\n'
 
@@ -116,6 +155,8 @@ def _pyff(env, source, target=[], select=None, remove=[], finalize=None) :
 
     # Note: pyff creates a .cache directory in current directory (i.e. the root dir, not the build dir)
     c2 = env.Command( target_node, [ s[0] for s in source_nodes ], ["$PYFF --loglevel=${PYFF_LOGLEVEL} "+fd_node.path] )
+    if xslt_node:
+        env.Depends(c2, xslt_node)
 
     return [ c1, c2 ]
 
