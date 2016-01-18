@@ -87,7 +87,7 @@ vars.Add('XMLLINT', 'Command to run xmllint')
 vars.Add('XSLTPROC', 'Command to run xsltproc')
 vars.Add('JAVA_HOME', 'Path to the Java JRE')
 vars.Add('FETCH_MD_COMMAND', 'Command that outputs federation metadata')
-vars.Add('METADATA_VALID_UNTIL', 'Validity period for generated metadata', 'PT6D')
+vars.Add('METADATA_VALID_UNTIL', 'Validity period for generated metadata', 'P10D')
 vars.Add('METADATA_CACHE_DURATION', 'Cache duration for generated metadata', 'PT1H')
 
 # Don't let SCons look for most of the buildin tools (e.g. C compiler). Explicitly list the ones
