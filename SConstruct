@@ -132,7 +132,7 @@ download_dir=root_dir   # Directory to store downloaded files
 if (build_dir != root_dir):
     build_dir=Dir(build_dir).abspath
     env.SConsignFile(build_dir+'/.sconsign.dblite') # Store the ".sconsign.dblite" file in the build directory instead of in the root_dir
-    download_dir=root_dir+"/download/"+build_dir
+    download_dir=build_dir+"/download/"
 
 env['DOWNLOAD_DIR'] = download_dir # Make the download dir available in the environment
 
