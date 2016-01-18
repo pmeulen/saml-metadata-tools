@@ -160,12 +160,6 @@ else:
 
 # Skip build command when user wants help
 if not GetOption('help'):
-    if (build_dir != root_dir):
-        SConscript( 'SConscript', exports='env', variant_dir=build_dir, duplicate=1 )
-        Clean('.', build_dir) # Clean build dir as part of clean action (-c, --clean)
-    else:
-        SConscript( 'SConscript', exports='env' )
-
     # Because downloaded files will be removed from a variant_dir by scons, SConscript.downloads is not build in a
     # variant_dir.
     # All build commands (either in SConscript or SConscript.download) must use the "${DOWNLOAD_DIR}" from the env in
@@ -174,3 +168,9 @@ if not GetOption('help'):
     # Actions from the SConscript must not have targets in DOWNLOAD_DIR (only sources)
     if fetch_metadata:
         SConscript( 'SConscript.download', exports='env')  # For downloading files into DOWNLOAD_DIR
+
+    if (build_dir != root_dir):
+        SConscript( 'SConscript', exports='env', variant_dir=build_dir, duplicate=1 )
+        Clean('.', build_dir) # Clean build dir as part of clean action (-c, --clean)
+    else:
+        SConscript( 'SConscript', exports='env' )
