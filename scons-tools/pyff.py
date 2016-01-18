@@ -117,7 +117,7 @@ def _pyff(env, source, target=[], select=None, remove=[], finalize=None, xslt=No
 
     if remove:
         fd+='- fork merge remove:\n'
-        fd+='  - select:\n'
+        fd+='  - filter:\n'
         for r in remove :
             fd+='    - ' + env.subst(r) + '\n'
 
