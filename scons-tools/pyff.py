@@ -94,7 +94,7 @@ def _pyff(env, source, target=[], select=None, remove=[], finalize=None, xslt=No
 
     ## Generate the fd file for pyff
     # Load
-    # Note: The currently unreleased pyFF 0.10dev supports additional load options that change the beheviour of pyFF when loading metadata:
+    # Note: The currently unreleased pyFF 0.10dev supports additional load options that change the behaviour of pyFF when loading metadata:
     # - "fail_on_error" controls whether pyFF exits with an error (True) when a metadata file can not be loaded or whether the
     #   file is ignored (False)
     # - "filter_invalid" controls whether an invalid entity in a file is ignored (True) or results in an error (False)
@@ -115,11 +115,32 @@ def _pyff(env, source, target=[], select=None, remove=[], finalize=None, xslt=No
 
     # Make earlier of loaded sources take priority over later loaded ones.
     # A "fork merge replace_existing" will replace each EntityDescriptor in the main branch that also exists in the fork
-    # by that from the fork. Comperison of EntityDescriptors is done by EntityID
+    # by that from the fork. Comparison of EntityDescriptors is done by EntityID
     if len(source_nodes) > 1:
-        for s in reversed(source_nodes[0:-1]):  # iterate over sources from N-1 to 0.
+        for source in reversed(source_nodes[0:-1]):  # iterate over sources from N-1 to 0.
             fd+="- fork merge replace_existing:\n"
-            fd+="  - select: " + s[1] + "\n"
+            # fd+="  - select: " + source[1] + "\n" # Should be enough, but in 0.9.4 this results in error
+            # In 0.9.4 each entity selected here must exists in the main document
+            # Otherwise this results in error:
+            #   TypeError: must be string or buffer, not None
+            #   File "/opt/pyff/local/lib/python2.7/site-packages/pyff/mdrepo.py", line 821, in merge self.index.remove(old_e)
+            # So limit selection to what could have been selected in the main select above
+
+            # Go over the select array and find the selects that must be applied to limit selected entities to the same as
+            # in the main select above. Apply:
+            # - selects starting with "!" match all sources
+            # - selects starting with "SOURCE!" match SOURCE
+            # When there is a select of "SOURCE" or no SELECT all from source is selected
+            if select and not (source[1] in select):
+                for s in select:
+                    s=env.subst(s)
+                    if (s[0] == '!'):
+                        fd+="  - select: " + source[1] + s + "\n" # Apply select limited to source
+                    if ( s.startswith(source[1]+"!") ):
+                        fd+="  - select: " + s + "\n" # Apply select, it is already limited to this source
+            else:
+                # No select was specified, or a select of SOURCE was specified. In these cases all entities of SOURCE are elegible
+                fd+="  - select: " + source[1] + "\n" # select all from source
 
     if remove:
         fd+='- fork merge remove:\n'
