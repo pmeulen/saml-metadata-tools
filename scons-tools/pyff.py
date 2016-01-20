@@ -94,7 +94,13 @@ def _pyff(env, source, target=[], select=None, remove=[], finalize=None, xslt=No
 
     ## Generate the fd file for pyff
     # Load
-    fd= '- load max_workers 1 timeout 10 validate True fail_on_error True filter_invalid False:\n'
+    # Note: The currently unreleased pyFF 0.10dev supports additional load options that change the beheviour of pyFF when loading metadata:
+    # - "fail_on_error" controls whether pyFF exits with an error (True) when a metadata file can not be loaded or whether the
+    #   file is ignored (False)
+    # - "filter_invalid" controls whether an invalid entity in a file is ignored (True) or results in an error (False)
+
+    #fd= '- load max_workers 1 timeout 10 validate True fail_on_error True filter_invalid False:\n' # Load for pyFF 0.10dev
+    fd= '- load:\n' # Load for pyFF 0.9.4
     for s in source_nodes :
         fd+='  - ' + s[0].path +' as ' + s[1]
         fd+='\n'
