@@ -123,9 +123,10 @@ def _pyff(env, source, target=[], select=None, remove=[], finalize=None, xslt=No
 
     if remove:
         fd+='- fork merge remove:\n'
-        fd+='  - filter:\n'
+        #fd+='  - filter:\n' # pyFF 0.10dev
+        fd+='  - select:\n' # pyFF 0.9.4. Note entityID must exist. See: https://github.com/leifj/pyFF/issues/39
         for r in remove :
-            fd+='    - ' + env.subst(r) + '\n'
+            fd+='    - "' + env.subst(r) + '"\n'
 
     if finalize:
         if len(finalize) < 3:
