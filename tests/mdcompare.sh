@@ -22,8 +22,8 @@ tmp1=`mktemp`
 tmp2=`mktemp`
 
 # Process them
-$XSLTPROC `dirname $0`/mdreport.xslt --nonet $1 > ${tmp1}
-$XSLTPROC `dirname $0`/mdreport.xslt --nonet $2 > ${tmp2}
+$XSLTPROC --nonet `dirname $0`/mdreport.xslt $1 > ${tmp1}
+$XSLTPROC --nonet `dirname $0`/mdreport.xslt $2 > ${tmp2}
 
 # Diff the output
 $DIFF ${tmp1} ${tmp2}
