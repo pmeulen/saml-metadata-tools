@@ -63,7 +63,7 @@ if [ $? -ne "0" ]; then
 fi
 
 # Diff the output
-${DIFF} ${tmp1} ${tmp2} | head -n 30
+output=`${DIFF} ${tmp1} ${tmp2}`
 res=$?
 if [ $res -gt "1" ]; then
     error_exit "Diff failed"
@@ -71,7 +71,7 @@ fi
 if [ $res -eq "1" ]; then
     echo "=========="
     echo "'$1' and '$2' differ. Showing first 30 lines:"
-    echo $output | head 30
+    echo "$output" | head -n 30
 fi
 
 rm ${tmp1}
