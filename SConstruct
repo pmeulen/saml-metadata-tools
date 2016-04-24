@@ -171,7 +171,7 @@ if not GetOption('help'):
         SConscript( 'SConscript.download', exports='env')  # For downloading files into DOWNLOAD_DIR
 
     if (build_dir != root_dir):
-        #build_dir += '/build'
+        build_dir += '/build'
         print 'Building in %s' % build_dir
         SConscript( 'SConscript', exports='env', variant_dir=build_dir, duplicate=1 )
         Clean('.', build_dir) # Clean build dir as part of clean action (-c, --clean)
