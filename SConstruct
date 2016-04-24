@@ -30,7 +30,8 @@ To use a build directory, type: scons --build-dir=/tmp/build
 To build a specific target, type: scons <name of target>
 Note: The target must include the build dir specified using the --build-dir option. The '=' between
       options and values on the command line is required.
-E.g. "scons --build-dir=/tmp/build /tmp/build/some-output.xml"
+E.g. "scons --build-dir=/tmp/build /tmp/build/build/some-output.xml". Note that the targets are build
+in "<build-dir>/build/" and not in "<build-dir>/".
 
 SConstruct specific (aka local) options:
 --build-dir         Specify alternate build directory
@@ -170,6 +171,8 @@ if not GetOption('help'):
         SConscript( 'SConscript.download', exports='env')  # For downloading files into DOWNLOAD_DIR
 
     if (build_dir != root_dir):
+        #build_dir += '/build'
+        print 'Building in %s' % build_dir
         SConscript( 'SConscript', exports='env', variant_dir=build_dir, duplicate=1 )
         Clean('.', build_dir) # Clean build dir as part of clean action (-c, --clean)
     else:

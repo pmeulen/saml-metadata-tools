@@ -71,9 +71,10 @@ to the command line:
 
 ### Build dir
 
-Specifies where to put all the generated files. Downloaded files are also stored in this directory. Use 
-``--build-dir`` option to specify it's location. Always use an "=" to prevent confusing the SCons commandline 
-parser. E.g:
+Specifies the parent directory for storing all the generated and downloaded files. Downloaded files are strored
+in the "<build-dir>/download/", build targets atre stored in the "<build-dir>/build/" directory. 
+Use the ``--build-dir`` option to specify the location of the build directory. Always use an "=" to prevent 
+confusing the SCons commandline parser. E.g:
 ``scons --build-dir=/tmp/build``
 
 ### Do not download (metadata) files
@@ -84,9 +85,10 @@ Downloading files is enabled by default. To skip the downloading step add the ``
 ### Specify the target to build
 
 To build only one target specify it in the command:
-``scons --build-dir=/tmp/build --no-fetch-metadata /tmp/build/some-generated-file.xml``
+``scons --build-dir=/tmp/build --no-fetch-metadata /tmp/build/build/some-generated-file.xml``
 
-When using abuild dir the build dir must be included in the target.
+When using a build dir the path to the target in the build dir must be included in the target. Note the added
+"/build/" in the target path.
 
 ### Dependencies
 
@@ -94,7 +96,7 @@ SCons builds a complete tree of all dependencies the go into a build. It can be 
 dependencies of a target are. The ``--tree=prune`` option can be used to show the dependency tree after a build. 
 SCons keeps a very complete view of dependencies, including the SConstruct's, and tools used. This means that even 
 the pruned tree can get quite big. It can be helpful to show the tree for single target:  
-``scons --build-dir=/tmp/build --tree=prune /tmp/build/some-generated-file.xml``
+``scons --build-dir=/tmp/build --tree=prune /tmp/build/build/some-generated-file.xml``
 
 
 # Troubleshooting a build
@@ -102,7 +104,8 @@ the pruned tree can get quite big. It can be helpful to show the tree for single
 ## Rerunning a command
 The commands used to run the individual tools are output during the build. This allows rerunning of individual steps 
 by simply rerunning the command from a commandline. For the most reliable results, ensure that the same same shell 
-environment and user are used to execute the command.
+environment and user are used to execute the command. The exact commands that were run can be found in the output
+of the build.
 
 Note that SCons sets it's own, minimal shell environment. The SCons output prints this environment at the start of 
 the build. E.g.:
@@ -130,7 +133,7 @@ result in a different error.
 
 A single (intermediate) target can be rebuild by specifing the target on the commandline. This typically result in a 
 shorter build, that is easier to troubleshoot. Note that the build directory must be added to the target. E.g:
-``scons --build-dir=/tmp/build --no-fetch-metadata /tmp/build/some-generated-file.xml``
+``scons --build-dir=/tmp/build --no-fetch-metadata /tmp/build/build/some-generated-file.xml``
 
 
 # Design
@@ -156,13 +159,13 @@ Finally the ``SConscript`` is included. All the other build commands should be p
 ## Build directory
 
 The ``--build-dir`` option can be used to perform the build in another directory than the current. This uses the 
-SCons variant_dir functionality to execute the SConscript in this directory. The ``DOWNLOAD_DIR`` is a subdirectory 
-of the build-dir. Also the SCons database is stored in the build-dir. This means that all files related to the build 
-are stored in the build directory.  
+SCons variant_dir functionality to execute the SConscript in a "build" directory in this directory. 
+The ``DOWNLOAD_DIR`` is a subdirectory  of the build-dir. Also the SCons database is stored in the build-dir. 
+This means that all files related to the build are stored in the build directory.  
 
 When using a build directory nothing is written to the metadata-tools directory (where the main SConscript file is 
 stored). There is one exception: pyFF needs a .cache directory in this directory, but since there is no need for pyff
- to download any files, nothing will be actually written to this directory.
+to download any files, nothing will be actually written to this directory.
  
 Thus the build directory (and the metadata-tools) are all that is required to repoduce a build or repeat individual 
 steps from the build process.
