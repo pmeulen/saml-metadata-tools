@@ -67,6 +67,11 @@ AddOption('--no-fetch-metadata', dest='fetch-metadata', action='store_false', de
 AddOption('--config-file', dest='config-file', type='string', nargs=1, action='store', metavar='CONFIGFILE',
           help='configuration file',
           default='config.py' )
+
+AddOption('--sconscript-dir', dest='sconscript-dir', type='string', nargs=1, action='store', metavar='SCONSCRIPTDIR',
+          help='Directory of the SConscript.download and SConscript files',
+          default='./')
+
 config_file = os.path.abspath( GetOption('config-file') )   # File containing variables
 
 # Variables for setting system dependent configuration
@@ -135,7 +140,10 @@ if (build_dir != root_dir):
     env.SConsignFile(build_dir+'/.sconsign.dblite') # Store the ".sconsign.dblite" file in the build directory instead of in the root_dir
     download_dir=build_dir+"/download/"
 
+sconscript_dir = GetOption('sconscript-dir') # Location of the SConscript(.download)
+
 env['DOWNLOAD_DIR'] = download_dir # Make the download dir available in the environment
+env['SCONSCRIPT_DIR'] = sconscript_dir # Make the sconscript dir available in the environment
 
 # Dump environment that is being used for building in a way that can used from a shell
 # That allows using the same environment when reproducing a build error
@@ -168,12 +176,17 @@ if not GetOption('help'):
     # Download commands should only have targets in DOWNLOAD_DIR
     # Actions from the SConscript must not have targets in DOWNLOAD_DIR (only sources)
     if fetch_metadata:
-        SConscript( 'SConscript.download', exports='env')  # For downloading files into DOWNLOAD_DIR
+        sconscript_download=sconscript_dir + '/SConscript.download'
+        print 'Reading %s ' % sconscript_download
+        SConscript( sconscript_download, exports='env')  # For downloading files into DOWNLOAD_DIR
+
+    sconscript = sconscript_dir + '/SConscript'
+    print 'Reading %s ' % sconscript
 
     if (build_dir != root_dir):
-        #build_dir += '/build'
+        build_dir += '/build'
         print 'Building in %s' % build_dir
-        SConscript( 'SConscript', exports='env', variant_dir=build_dir, duplicate=1 )
+        SConscript( sconscript, exports='env', variant_dir=build_dir, duplicate=1 )
         Clean('.', build_dir) # Clean build dir as part of clean action (-c, --clean)
     else:
-        SConscript( 'SConscript', exports='env' )
+        SConscript( sconscript, exports='env' )
